@@ -1,4 +1,5 @@
 import supabase from './supabase';
+import { safeJsonFetch } from './safeJsonFetch';
 
 export interface WorkItem { id: number; title: string; category: string; description: string; image_url: string; link_url: string; published: boolean; created_at: string }
 export interface StudioPlan { name: string; price: string; price_prefix?: string; note?: string; description: string }
@@ -8,8 +9,12 @@ export interface OwnerData { settings: StudioSettings; work: WorkItem[]; usernam
 export async function ownerRequest<T>(method = 'GET', body?: unknown, query = ''): Promise<T> {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) throw new Error('Please sign in to continue.');
-  const response = await fetch(`/api/owner${query}`, { method, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` }, ...(body ? { body: JSON.stringify(body) } : {}) });
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error || 'This action could not be completed.');
-  return data;
+  return safeJsonFetch<T>(`/api/owner${query}`, { method, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` }, ...(body ? { body: JSON.stringify(body) } : {}) }, {
+    // Never substitute local data for owner authorization or successful writes.
+    validate: method === 'GET' ? value => {
+      if (!value || typeof value !== 'object') return false;
+      const data = value as Record<string, unknown>;
+      return query.includes('action=check') ? data.owner === true : !!data.settings && Array.isArray(data.work) && typeof data.username === 'string';
+    } : undefined,
+  });
 }

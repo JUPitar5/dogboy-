@@ -5,6 +5,7 @@ import { ArrowLeft, Eye, EyeOff, Loader2, Power, ShieldCheck } from 'lucide-reac
 import { useAuth } from '../contexts/AuthContext';
 import supabase from '../lib/supabase';
 import { signInWithGoogle } from '../lib/googleAuth';
+import { API_UNAVAILABLE_MESSAGE } from '../lib/safeJsonFetch';
 import ProtectedOwner from './ProtectedOwner';
 import OwnerDashboard from './OwnerDashboard';
 import './owner.css';
@@ -23,7 +24,7 @@ function OwnerLogin() {
       const name = username.trim().toLowerCase();
       const email = name.includes('@') ? name : `${name}@saafstudio.owner`;
       const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
-      if (signInError) throw new Error('The username or password is incorrect. Please try again.');
+      if (signInError) throw new Error(signInError.status && signInError.status >= 500 ? API_UNAVAILABLE_MESSAGE : 'The username or password is incorrect. Please try again.');
     } catch (err) { setError((err as Error).message); } finally { setBusy(false); }
   };
   return <section className="owner-login-card">

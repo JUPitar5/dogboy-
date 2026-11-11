@@ -1,1 +1,11 @@
-{}
+{
+  "routes": [
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/((?!api(?:/|$)|assets(?:/|$)|data(?:/|$)|field(?:/|$)|fonts(?:/|$)|images(?:/|$)|art(?:/|$)).*)",
+      "dest": "/index.html"
+    }
+  ]
+}

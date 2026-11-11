@@ -5,6 +5,7 @@ import { mountField } from '../lib/field';
 import type { FieldScene } from '../lib/field';
 import { AuthProvider } from '../contexts/AuthContext';
 import { handleGoogleRedirect } from '../lib/googleAuth';
+import { fetchPublicJson, safeJsonFetch } from '../lib/safeJsonFetch';
 import OwnerPage from './OwnerPage';
 import WorkGallery from './WorkGallery';
 import './boring.css';
@@ -21,10 +22,11 @@ interface Section { heading: string; paragraphs: string[] }
 interface Post { id: number; slug: string; title: string; description: string; published_at: string; minutes: number; number: string; tags: string[]; author: string; content?: Section[] }
 
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(url, options);
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Something went wrong. Please try again.');
-  return data;
+  if (!options?.method || options.method === 'GET') {
+    if (url === '/api/site') return fetchPublicJson<T>(url, 'site');
+    if (url === '/api/posts') return fetchPublicJson<T>(url, 'posts', [] as T);
+  }
+  return safeJsonFetch<T>(url, options);
 }
 function GrassMark() {
   return <svg className="mark__glyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6.5C16.5 3 6 2.5 6 8c0 5.5 12 2.5 12 8 0 5.5-10.5 5-12 1.5" /><path d="M18 3.5v3M6 17.5v3" /></svg>;

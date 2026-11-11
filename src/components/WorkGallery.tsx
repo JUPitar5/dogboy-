@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ArrowUpRight, Image, Loader2 } from 'lucide-react';
 import type { WorkItem } from '../lib/ownerApi';
+import { fetchPublicJson } from '../lib/safeJsonFetch';
 import './owner.css';
 
 export default function WorkGallery({ brand }: { brand: string }) {
@@ -9,7 +10,7 @@ export default function WorkGallery({ brand }: { brand: string }) {
   const [error, setError] = useState('');
   const load = useCallback(async () => {
     setLoading(true); setError('');
-    try { const res = await fetch('/api/work'); const result = await res.json(); if (!res.ok) throw new Error(result.error || 'Could not load our work.'); setWork(result); } catch (err) { setError((err as Error).message); } finally { setLoading(false); }
+    try { setWork(await fetchPublicJson<WorkItem[]>('/api/work', 'work', [])); } catch (err) { setError((err as Error).message); } finally { setLoading(false); }
   }, []);
   useEffect(() => { void load(); }, [load]);
   return <div className="reader" data-shown="true"><main className="studio-work" id="main-content"><p className="eyebrow">{brand} / SELECTED WORK</p><h1>Our work</h1><p className="studio-work-lede">A collection of things we’ve made with care.</p>

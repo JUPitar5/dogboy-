@@ -25,7 +25,9 @@ export default async function handler(req, res) {
     if (req.headers?.authorization?.startsWith('Bearer ') && req.headers.authorization !== 'Bearer studio-auth-proxy') headers.Authorization = req.headers.authorization;
     const response = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/${endpoint}?${query}`, { method: req.method, headers, ...(req.method === 'POST' ? { body: JSON.stringify(req.body || {}) } : {}) });
     if (response.status === 204) return res.status(204).end();
-    const result = await response.json();
+    if (!response.headers.get('content-type')?.includes('application/json')) throw new Error('Authentication service did not return JSON.');
+    let result;
+    try { result = await response.json(); } catch { throw new Error('Authentication service returned invalid JSON.'); }
     if (response.ok && endpoint === 'token') {
       const userId = result.user?.id;
       if (!userId) return res.status(401).json({ error: 'invalid_credentials', error_description: 'Please sign in again.' });
