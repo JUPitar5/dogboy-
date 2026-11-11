@@ -1,0 +1,34 @@
+# Render Blueprint — dogboy
+# If you create the service via "New → Blueprint" (or import this repo),
+# Render uses exactly these settings. If you already created a Web Service
+# manually, set the same values in Dashboard → Settings:
+#
+#   Build Command:  npm install && npm run build
+#   Start Command:  npm start
+#   Health Check Path: /healthz   (optional; "/" also works)
+#
+# IMPORTANT: create a "Web Service", NOT a "Static Site".
+# A Static Site cannot run the /api/*.js backend (login, posts, owner
+# dashboard, subscribe) — those are server code, not static files.
+services:
+  - type: web
+    name: dogboy
+    runtime: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /healthz
+    envVars:
+      # Copy these values from Vercel → your project → Settings →
+      # Environment Variables. They are NOT in git (and must never be).
+      # Render will prompt for them on first deploy (sync: false).
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      # Optional — only used by api/db-wake.js to wake a paused Supabase DB.
+      - key: FULLSTACK_PROJECT_REF
+        sync: false
+      - key: FULLSTACK_RESTORE_API_URL
+        sync: false
